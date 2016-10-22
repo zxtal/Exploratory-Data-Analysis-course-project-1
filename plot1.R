@@ -1,0 +1,20 @@
+##cleaning data
+library(dplyr)
+library(tidyr)
+data <- read.table("./household_power_consumption.txt", header = T)
+columnNames <- colnames(data)
+columnNames <- strsplit(as.character(columnNames), ".", fixed = T)
+columnNames <- unlist(columnNames)
+clean <- separate(data, "Date.Time.Global_active_power.Global_reactive_power.Voltage.Global_intensity.Sub_metering_1.Sub_metering_2.Sub_metering_3", into = c("Date","Time","Global_active_power","Global_reactive_power","Voltage","Global_intensity","Sub_metering_1","Sub_metering_2","Sub_metering_3"), sep = ";")
+clean <- mutate(clean, Date=as.Date(Date, "%d/%m/%Y"))
+clean2 <- filter(clean, Date == "2007-02-01")
+clean3 <- filter(clean, Date == "2007-02-02")
+clean_project <- rbind(clean2, clean3)
+clean_project[,3:9] <- sapply(clean_project[, 3:9], as.numeric)
+clean_project <- mutate(clean_project, daytime = paste(clean_project$Date, clean_project$Time))
+clean_project$daytime <- strptime(clean_project$daytime, "%Y-%m-%d %H:%M:%S")
+
+##plot1
+png(file = "plot1.png", width = 480, height = 480, units = "px" )
+hist(clean_project$Global_active_power, main = "Global Active Power", xlab = "Global Active Power (kilowatts)", ylab = "Frequency", col = "red")
+dev.off()
